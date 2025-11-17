@@ -2,4 +2,4 @@ services:
   web:
     build: .
     ports: 
-      - "8887:8887"
+      - "8887:8000"
