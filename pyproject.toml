@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "igkaiba"
+version = "0.1.0"
+description = ""
+authors = ["asaunde78 <asaunde78@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+requests = "^2.32.4"
+dotenv = "^0.9.9"
+flask = "^3.1.1"
+minio = "^7.2.15"
+urllib3 = "^2.5.0"
+ffmpeg-python = "^0.2.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

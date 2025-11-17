@@ -1,1 +1,10 @@
 .env
+node_modules/
+videos/
+images/
+upload/
+__pycache__/
+client_secrets.json
+logs.txt
+test_upload.mp4
+videogen.py-oauth2.json
