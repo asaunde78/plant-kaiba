@@ -5,7 +5,13 @@ import os
 import urllib.request
 from urllib.parse import urlparse, parse_qs
 import ffmpeg
+import discord 
+import json 
+from datetime import datetime, tzinfo
+from pytz import timezone 
+import io 
 
+import aiohttp
 load_dotenv()
 
 
@@ -35,6 +41,9 @@ min_cli = Minio("s3.vaughn.sh", os.getenv("S3_ACCESS"), os.getenv("S3_SECRET"))
 print(min_cli.list_buckets())
 from flask import Flask, request, jsonify, Response
 
+webhook = discord.SyncWebhook.from_url(os.getenv("WEBHOOK"))
+
+
 app = Flask(__name__)
 
 @app.route("/instagram", methods=["GET","POST"])
@@ -54,12 +63,9 @@ def insta():
                     if(attach and attach[0]):
                         payload = attach[0].get("payload")
                         if(payload):
-                            print("[WORKING] hello???")
                             
                             url = payload.get("url")
                             title =  payload.get("title")
-        
-
                             stream = min_cli.list_objects("zink", "kaiba", True)
                             print(stream)
                             part_size = 10 * 1024 * 1024
@@ -79,9 +85,41 @@ def insta():
                                     f_name = q["asset_id"][0]
                                 # print("file name:",f_name)
                                 data = response
-                                min_cli.put_object("zink", f"kaiba/{f_name}.{content_type}", data, length=-1, part_size=part_size, tags=tags)
+                                arr = io.BytesIO()
+                                copy = io.BytesIO()
+                                while True:
+                                    # Read a chunk of data from the response
+                                    chunk = data.read(200)
+                                    # print(chunk)
+                                    if not chunk:
+                                        # Break the loop if no more data is received
+                                        break
+                                    # Write the chunk to the BytesIO buffer
+                                    arr.write(chunk)
+                                    copy.write(chunk)
+                            
+                                arr.seek(0)
+                                copy.seek(0)
+                                f = discord.File(arr, filename=f"temp.{content_type}")
+                                min_cli.put_object("zink", f"kaiba/{f_name}.{content_type}", copy, length=-1, part_size=part_size, tags=tags)
                                 body = {"content": f"Sent by: {user_data.get("username")} \n [{title if title else "no title"}]({url})"}
-                                res = requests.post(os.getenv("WEBHOOK"), json = body)
+                                
+                                
+                                
+                                
+                                
+                                embed = discord.Embed( description= title if title else "no title", timestamp=datetime.fromtimestamp(int(mes[0].get("timestamp"))/1000, tz=timezone("US/Eastern")))
+                                embed.set_author(name=user_data.get("username"),icon_url=user_data.get("profile_pic"))
+                                
+                                
+                                print(response.status, response.url, response.headers)
+                                
+                                webhook.send(file=f, embed=embed)
+                                body = {"content":f"[content]({url})", "embeds":[embed.to_dict()]}
+                                # print("E TO D", body)
+                                # res = requests.post(os.getenv("WEBHOOK"), json = body)
+                                # res = requests.post(os.getenv("WEBHOOK"), json = body, headers={"Content-Type":"application/json"})
+                                # print(res, res.reason, res.text)
         return Response(status=200, mimetype='application/json')
     if(request.method=="GET"):
         print(request.args)
