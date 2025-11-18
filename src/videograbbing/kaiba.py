@@ -112,13 +112,16 @@ def insta():
             copy.seek(0)
             f = discord.File(arr, filename=f"temp.{content_type}")
             min_cli.put_object("zink", f"kaiba/{f_name}.{content_type}", copy, length=-1, part_size=part_size, tags=tags)
-            body = {"content": f"Sent by: {user_data.get("username")} \n [{title if title else "no title"}]({url})"}
-            
         
-            
-            embed = discord.Embed( description= title if title else "no title", timestamp=datetime.fromtimestamp(int(mes[0].get("timestamp"))/1000, tz=timezone("US/Eastern")))
-            embed.set_author(name=user_data.get("username"),icon_url=user_data.get("profile_pic"))
-            webhook.send(file=f, embed=embed)
+        
+            try:
+                embed = discord.Embed( description= title if title else "no title", timestamp=datetime.fromtimestamp(int(mes[0].get("timestamp"))/1000, tz=timezone("US/Eastern")))
+                embed.set_author(name=user_data.get("username"),icon_url=user_data.get("profile_pic"))
+                webhook.send(file=f, embed=embed)
+            except:
+                embed = discord.Embed( description= f"Sent by: {user_data.get("username")} \n [{title if title else "no title"}]({url})", timestamp=datetime.fromtimestamp(int(mes[0].get("timestamp"))/1000, tz=timezone("US/Eastern")))
+                embed.set_author(name=user_data.get("username"),icon_url=user_data.get("profile_pic"))
+                webhook.send(embed=embed)
             
         return Response(status=200, mimetype='application/json')
     if(request.method=="GET"):
